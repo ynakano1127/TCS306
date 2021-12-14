@@ -1,0 +1,218 @@
+options {
+  JDK_VERSION = "1.5";
+  STATIC = false;
+  UNICODE_INPUT = true;
+}
+
+PARSER_BEGIN(Calc)
+
+import java.io.*;
+public class Calc
+{
+    private Env env = new Env();
+
+    public static void main(String args [])
+    {
+        try {
+            if (args.length == 0)
+                new Calc(System.in).interactive();    // 対話モードへ
+            else {
+                Reader reader = new BufferedReader(new FileReader(new File(args[0])));
+                Calc calc = new Calc(reader);
+                calc.eval();
+            }
+        } catch (ParseException e) {
+            System.err.println(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void interactive() throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        while (true) {
+            System.out.print("> ");
+            String input = "";
+            while (true) {
+                String line = reader.readLine();
+                if (line == null) return;
+                input += line;
+                if (line.length() == 0 || input.charAt(input.length() - 1) != '\\')
+                    break;
+                input = input.substring(0, input.length() - 1);
+	    }
+            try {
+                ReInit(new StringReader(input));
+                eval();
+            } catch (ParseException e) {
+                System.err.println(e);
+            }
+        }
+    }
+}
+
+PARSER_END(Calc)
+
+SKIP : { < [" ", "\r", "\t", "\n"] > }
+
+TOKEN : {
+  < INTEGER: (["0"-"9"])+ >
+  | <IDENTIFIER: ["a"-"z", "A"-"Z", "_"](["a"-"z", "A"-"Z", "_", "0"-"9"])*>
+}
+
+void eval() :
+{
+    int n;
+}
+{
+    n = expr() { System.out.println("=>" + n); } <EOF>
+}
+
+int expr() :
+{
+    String x;
+    int y;
+}
+{
+    LOOKAHEAD(2) x = name() "=" y = expr()
+     {
+        env.put(x, y);
+        return y;
+    }
+     | (LOOKAHEAD(2) y = orExpr() | y = numExpr())
+    {
+        return y;
+    }
+}
+
+int orExpr() :
+{
+    int x, y;
+}{
+    x = andExpr() (
+        "||" y = andExpr()
+        { x = (x!=0)||(y!=0) ? 1 : 0; }
+    )*
+    { return x; }
+}
+
+int andExpr() :
+{
+    int x, y;
+}{
+    x = compExpr() (
+        "&&" y = compExpr()
+        { x = (x!=0)&&(y!=0) ? 1 : 0; }
+    )*
+    { return x; }
+}
+
+int compExpr() :
+{
+    int x, y;
+    boolean z;
+ }{
+    x = numExpr() [
+        ">" y = numExpr()
+        { x = x > y ? 1 : 0; }
+        |
+        "<" y = numExpr()
+        { x = x < y ? 1 : 0; }
+        |
+        ">=" y = numExpr()
+        { x = x >= y ? 1 : 0; }
+        |
+        "<=" y = numExpr()
+        { x = x <= y ? 1 : 0; }
+        |
+        "==" y = numExpr()
+        { x = x == y ? 1 : 0; }
+        |
+        "!=" y = numExpr()
+        { x = x != y ? 1 : 0; }
+    ]
+    { return x; }
+}
+
+int numExpr() :
+{
+    int x, y;
+}
+{
+    x = term() (
+        ("+" y = term()
+            { x+= y; }
+        )
+        | ("-" y = term()
+            { x-= y; }
+        )
+    )*
+    {
+        return x;
+    }
+}
+
+int term() :
+{
+    int x, y;
+}
+{
+    x = factor() (
+        ("*" y = factor()
+            { x *= y; }
+        )
+        | ("/" y = factor()
+            { x /= y; }
+        )
+    )*
+    {
+        return x;
+    }
+}
+
+int factor() :
+{
+    int x;
+}
+{
+    (
+        x = element()
+    | (
+        "(" x = expr() ")"
+    )
+    | (
+        "+" x = factor()
+        { x = x*=1; }
+    )
+    | (
+        "-" x = factor()
+        { x = x*=-1; }
+    )
+    )
+    { return x; }
+}
+
+int element() :
+{
+    int n;
+    String s;
+}
+{
+    n = number() { return n; }
+    | s = name()
+    {
+        if(!env.containsKey(s))
+            throw new ParseException(s + " is not defined");
+        return env.get(s);
+    }
+}
+
+int number() : { Token n; }
+{
+    n = < INTEGER > { return Integer.parseInt(n.image); }
+}
+
+String name() : { Token s; }
+{
+    s = < IDENTIFIER> { return s.image; }
+}
