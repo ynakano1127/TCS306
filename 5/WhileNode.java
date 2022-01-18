@@ -9,9 +9,9 @@ public class WhileNode extends Node {
     }
 
     @Override
-    public int eval(Env env) throws ParseException {
-        int result = 0;
-        while(cond.eval(env) != 0) {
+    public Object eval(Env env) throws ParseException {
+        Object result = null;
+        while((int)cond.eval(env) != 0) {
             result = block.eval(env);
         }
         return result;

@@ -7,7 +7,7 @@ public class NumberNode extends Node{
     }
 
     @Override
-    public int eval(Env env) throws ParseException {
+    public Object eval(Env env) throws ParseException {
         return num;
     }
 

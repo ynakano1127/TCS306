@@ -8,7 +8,7 @@ public class PosExprNode extends Node{
     }
 
     @Override
-    public int eval(Env env) throws ParseException {
+    public Object eval(Env env) throws ParseException {
         return node.eval(env);
     }
 

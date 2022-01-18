@@ -6,7 +6,7 @@ public abstract class Node {
 
     public Node() { this.line = UNKNOWN_LINE; }
 
-    public abstract int eval(Env env) throws ParseException;
+    public abstract Object eval(Env env) throws ParseException;
 
     public int line() { return line; }
 

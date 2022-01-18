@@ -11,8 +11,8 @@ public class IfNode extends Node {
     }
 
     @Override
-    public int eval(Env env) throws ParseException {
-        if(cond.eval(env) != 0)
+    public Object eval(Env env) throws ParseException {
+        if((int)cond.eval(env) != 0)
             return thenBlock.eval(env);
         else if(elseBlock != null)
             return elseBlock.eval(env);

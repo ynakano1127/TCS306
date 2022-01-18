@@ -7,7 +7,7 @@ public class NameNode extends Node {
     }
 
     @java.lang.Override
-    public int eval(Env env) throws ParseException {
+    public Object eval(Env env) throws ParseException {
         if (env.containsKey(name))
             return env.get(name);
         throw new ParseException(name + "は未定義の変数です" + where());

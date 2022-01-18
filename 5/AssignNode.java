@@ -9,9 +9,9 @@ public class AssignNode extends Node {
     }
 
     @Override
-    public int eval(Env env) throws ParseException {
+    public Object eval(Env env) throws ParseException {
         String name = var.name();
-        int res = val.eval(env);
+        Object res = val.eval(env);
         env.put(name, res);
         return res;
     }

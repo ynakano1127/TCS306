@@ -9,8 +9,8 @@ public class BlockNode extends Node {
     }
 
     @Override
-    public int eval(Env env) throws ParseException {
-        int result = 0;
+    public Object eval(Env env) throws ParseException {
+        Object result = null;
         for(Node node : nodes)
             result = node.eval(env);
         return  result;

@@ -4,11 +4,11 @@ options {
   UNICODE_INPUT = true;
 }
 
-PARSER_BEGIN(Calc)
+PARSER_BEGIN(Quartz)
 
 import java.io.*;
 import java.util.ArrayList;
-public class Calc
+public class Quartz
 {
     private Env env = new Env();
 
@@ -16,11 +16,11 @@ public class Calc
     {
         try {
             if (args.length == 0)
-                new Calc(System.in).interactive();    // 対話モードへ
+                new Quartz(System.in).interactive();    // 対話モードへ
             else {
                 Reader reader = new BufferedReader(new FileReader(new File(args[0])));
-                Calc calc = new Calc(reader);
-                calc.eval();
+                Quartz quartz = new Quartz(reader);
+                quartz.eval();
             }
         } catch (ParseException e) {
             System.err.println(e);
@@ -52,7 +52,7 @@ public class Calc
     }
 }
 
-PARSER_END(Calc)
+PARSER_END(Quartz)
 
 SKIP : { < [" ", "\r", "\t", "\n"] > }
 
@@ -64,6 +64,7 @@ TOKEN : {
   | < DO : "do">
   | < END: "end">
   |  < INTEGER: (["0"-"9"])+ >
+  | < STRING : "\"" (~["\""])* "\"" >
   | <IDENTIFIER: ["a"-"z", "A"-"Z", "_"](["a"-"z", "A"-"Z", "_", "0"-"9"])*>
 }
 
@@ -241,6 +242,8 @@ Node element() :
 {
     n = number()
     { return n; }
+    | n = string()
+    { return n; }
     | n = name()
     { return n; }
 }
@@ -248,6 +251,12 @@ Node element() :
 Node number() : { Token n; }
 {
     n = < INTEGER > { return new NumberNode(n.beginLine, Integer.parseInt(n.image)); }
+}
+
+Node string() : { Token t; }
+{
+    t = <STRING>
+    { return new StringNode(t.beginLine, t.image ); }
 }
 
 NameNode name() : { Token s; }
