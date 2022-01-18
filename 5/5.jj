@@ -54,7 +54,10 @@ public class Quartz
 
 PARSER_END(Quartz)
 
-SKIP : { < [" ", "\r", "\t", "\n"] > }
+SKIP : {
+    < [" ", "\r", "\t", "\n"] >
+    | <"#" (~["\n", "\r"])* ("\n" | "\r" | "\r\n")?>
+}
 
 TOKEN : {
   < IF: "if">
@@ -63,6 +66,7 @@ TOKEN : {
   | < WHILE: "while">
   | < DO : "do">
   | < END: "end">
+  | <PUTS : "puts">
   |  < INTEGER: (["0"-"9"])+ >
   | < STRING : "\"" (~["\""])* "\"" >
   | <IDENTIFIER: ["a"-"z", "A"-"Z", "_"](["a"-"z", "A"-"Z", "_", "0"-"9"])*>
@@ -76,8 +80,9 @@ void eval() :
     (
         root = stmt()
         {
-            System.out.println("tree: " + root);
-            System.out.println("=>" + root.eval(env));
+//            System.out.println("tree: " + root);
+//            System.out.println("=>" + root.eval(env));
+            root.eval(env);
         }
     )*
     <EOF>
@@ -88,7 +93,7 @@ Node stmt() :
   Node n;
 }
 {
-  ( n = simpleStmt() | n = ifStmt() | n = whileStmt() )
+  ( n = simpleStmt() | n = ifStmt() | n = whileStmt() | n = putsStmt())
   { return n; }
 }
 
@@ -110,6 +115,14 @@ Node whileStmt() :
 {
   t = <WHILE>  cond = expr() <DO> block = block() <END>
   { return new WhileNode(t.beginLine, cond, block); }
+}
+
+
+Node putsStmt() :
+{ Token t; Node n; }
+{
+    t = <PUTS> n = simpleStmt()
+    { return new PutsNode(t.beginLine, n); }
 }
 
 Node block() :

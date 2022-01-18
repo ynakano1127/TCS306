@@ -2,7 +2,7 @@ public class NameNode extends Node {
     private  String name;
 
     public NameNode(int line, String name) {
-        super();
+        super(line);
         this.name = name;
     }
 
