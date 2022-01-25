@@ -1,0 +1,322 @@
+options {
+  JDK_VERSION = "1.5";
+  STATIC = false;
+  UNICODE_INPUT = true;
+}
+
+PARSER_BEGIN(Quartz)
+
+import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
+public class Quartz
+{
+    private Env env = new Env();
+
+    public static void main(String args [])
+    {
+        try {
+            if (args.length == 0)
+                new Quartz(System.in).interactive();    // 対話モードへ
+            else {
+                Reader reader = new BufferedReader(new FileReader(new File(args[0])));
+                Quartz quartz = new Quartz(reader);
+                quartz.eval();
+            }
+        } catch (ParseException e) {
+            System.err.println(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void interactive() throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        while (true) {
+            System.out.print("> ");
+            String input = "";
+            while (true) {
+                String line = reader.readLine();
+                if (line == null) return;
+                input += line;
+                if (line.length() == 0 || input.charAt(input.length() - 1) != '\\')
+                    break;
+                input = input.substring(0, input.length() - 1);
+	    }
+            try {
+                ReInit(new StringReader(input));
+                eval();
+            } catch (ParseException e) {
+                System.err.println(e);
+            }
+        }
+    }
+}
+
+PARSER_END(Quartz)
+
+SKIP : {
+    < [" ", "\r", "\t", "\n"] >
+    | <"#" (~["\n", "\r"])* ("\n" | "\r" | "\r\n")?>
+}
+
+TOKEN : {
+  < IF: "if">
+  | < THEN: "then">
+  | < ELSE: "else">
+  | < WHILE: "while">
+  | < DO : "do">
+  | < END: "end">
+  | < DEF : "def">
+  | <PUTS : "puts">
+  |  < INTEGER: (["0"-"9"])+ >
+  | < STRING : "\"" (~["\""])* "\"" >
+  | <IDENTIFIER: ["a"-"z", "A"-"Z", "_"](["a"-"z", "A"-"Z", "_", "0"-"9"])*>
+}
+
+void eval() :
+{
+    Node root;
+}
+{
+    (
+        root = stmt()
+        {
+//            System.out.println("tree: " + root);
+//            System.out.println("=>" + root.eval(env));
+            root.eval(env);
+        }
+    )*
+    <EOF>
+}
+
+Node stmt() :
+{
+  Node n;
+}
+{
+  ( n = simpleStmt() | n = ifStmt() | n = whileStmt() | n = defStmt() |  n = putsStmt())
+  { return n; }
+}
+
+Node ifStmt() :
+{
+  Token t;
+  Node cond, thenBlock, elseBlock = null;
+}
+{
+  t = <IF> cond = expr() <THEN> thenBlock = block() [<ELSE>  elseBlock = block()] <END>
+  { return new IfNode(t.beginLine, cond, thenBlock, elseBlock); }
+}
+
+Node whileStmt() :
+{
+  Token t;
+  Node cond, block;
+}
+{
+  t = <WHILE>  cond = expr() <DO> block = block() <END>
+  { return new WhileNode(t.beginLine, cond, block); }
+}
+
+Node defStmt() :
+{
+    Token t;
+    List<String> ps;
+    Node body;
+}
+{
+    <DEF> t = <IDENTIFIER>  ps = paramList() body = block() <END>
+    { return new DefNode(t.beginLine, t.image, ps, body); }
+}
+
+List<String> paramList() :
+{
+    Token t;
+    List<String> ps = new ArrayList<String>();
+}
+{
+    "(" [
+         t = <IDENTIFIER>
+         { ps.add(t.image); }
+        ( "," <IDENTIFIER> { ps.add(t.image); } )*
+    ] ")"
+    { return ps; }
+}
+Node putsStmt() :
+{ Token t; Node n; }
+{
+    t = <PUTS> n = simpleStmt()
+    { return new PutsNode(t.beginLine, n); }
+}
+
+Node block() :
+{
+  Node tmpNode;
+  ArrayList<Node> nodes = new ArrayList<Node>();
+}
+{
+  (
+    tmpNode = stmt()
+    { nodes.add(tmpNode); }
+  )*
+  { return new BlockNode(nodes); }
+}
+
+Node simpleStmt() :
+{
+  Node n;
+}
+{
+    n = expr() ";"
+    { return n; }
+}
+
+Node expr() :
+{
+    NameNode n;
+    Node x;
+}
+{
+    LOOKAHEAD(2) n = name() "=" x = expr()
+     {
+        return new AssignNode(n.line(), n, x);
+    } | x = orExpr() { return x; }
+}
+
+Node orExpr() :
+{
+    Token t;
+    Node x, y;
+}{
+    x = andExpr() (
+        t = "||" y = andExpr()
+        { x = new BinExprNode(t.beginLine, x, t.image, y); }
+    )*
+    { return x; }
+}
+
+Node andExpr() :
+{
+    Token t;
+    Node x, y;
+}{
+    x = compExpr() (
+        t = "&&" y = compExpr()
+        { x = new BinExprNode(t.beginLine, x, t.image, y); }
+    )*
+    { return x; }
+}
+
+Node compExpr() :
+{
+    Token t;
+    Node x, y;
+ }{
+    x = numExpr() [
+        (
+            t = ">" |
+            t = "<" |
+            t = "<=" |
+            t = ">=" |
+            t = "==" |
+            t = "!="
+        ) y = numExpr()
+        { x = new BinExprNode(t.beginLine, x, t.image, y); }
+    ]
+    { return x; }
+}
+
+Node numExpr() :
+{
+    Token t;
+    Node x, y;
+}
+{
+    x = term() (
+        (t = "+" | t = "-")  y = term()
+        { x = new BinExprNode(t.beginLine, x, t.image, y); }
+    )*
+    { return x; }
+}
+
+Node term() :
+{
+    Token t;
+    Node x, y;
+}
+{
+    x = factor() (
+        ( t = "*" | t = "/" | t = "%" ) y = factor()
+        { x = new BinExprNode(t.beginLine, x, t.image, y); }
+    )*
+    { return x; }
+}
+
+Node factor() :
+{
+    Token t;
+    Node x;
+}
+{
+    (
+        x = element()
+    | (
+        "(" x = expr() ")"
+    ) | (
+        t = "+" x = factor()
+        { x = new PosExprNode(t.beginLine, x); }
+    ) | (
+        t = "-" x = factor()
+        { x = new NegExprNode(t.beginLine, x); }
+    ))
+    { return x; }
+}
+
+Node element() :
+{
+    Node n;
+}
+{
+    (n = number() | n = string() | n = name()) [ n = postfix(n) ]
+    { return n; }
+}
+
+Node number() : { Token n; }
+{
+    n = < INTEGER > { return new NumberNode(n.beginLine, Integer.parseInt(n.image)); }
+}
+
+Node string() : { Token t; }
+{
+    t = <STRING>
+    { return new StringNode(t.beginLine, t.image ); }
+}
+
+NameNode name() : { Token s; }
+{
+    s = < IDENTIFIER> { return new NameNode(s.beginLine, s.image); }
+}
+
+Node postfix(Node n) :
+{
+    List<Node> as;
+}
+{
+    as = argList()
+    { return new CallNode(n.line(), n, as); }
+}
+
+List<Node> argList() :
+{
+    Node n;
+    List<Node> as = new ArrayList<Node>();
+}
+{
+    "(" [
+        n = expr()
+        { as.add(n); }
+        ("," expr() { as.add(n); } )*
+    ] ")"
+    { return as; }
+}
