@@ -65,7 +65,9 @@ TOKEN : {
   | < THEN: "then">
   | < ELSE: "else">
   | < WHILE: "while">
+  | < FOR: "for">
   | < DO : "do">
+  | < IN : "in">
   | < END: "end">
   | < DEF : "def">
   | < FUN : "fun">
@@ -97,7 +99,7 @@ Node stmt() :
   Node n;
 }
 {
-  ( n = simpleStmt() | n = ifStmt() | n = whileStmt() | n = defStmt() |  n = putsStmt() | n = envStmt() )
+  ( n = simpleStmt() | n = ifStmt() | n = whileStmt() | n = forStmt() | n = defStmt() |  n = putsStmt() | n = envStmt() )
   { return n; }
 }
 
@@ -119,6 +121,17 @@ Node whileStmt() :
 {
   t = <WHILE>  cond = expr() <DO> block = block() <END>
   { return new WhileNode(t.beginLine, cond, block); }
+}
+
+Node forStmt() :
+{
+    Token t;
+    Token indexName;
+    Node arrayNode, block;
+}
+{
+    t = <FOR> indexName = <IDENTIFIER> <IN> arrayNode = expr() <DO> block = block() <END>
+    { return new ForNode(t.beginLine, indexName.image, arrayNode, block); }
 }
 
 Node defStmt() :
