@@ -1,0 +1,17 @@
+a = [1,2,3];
+puts a;
+env
+
+puts a[0];
+puts a[1];
+puts a[2];
+
+w = [["one", 1], ["two", 2]];
+puts w;
+puts w[1];
+
+v = [[[["deep"]]]];
+puts v[0];
+puts v[0][0];
+puts v[0][0][0];
+puts v[0][0][0][0];

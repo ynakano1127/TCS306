@@ -287,7 +287,7 @@ Node element() :
     Node n;
 }
 {
-    (n = number() | n = string() | n = name() | n = fun() )
+    (n = number() | n = string() | n = name() | n = fun() | n = array() )
     (n = postfix(n) )*
     { return n; }
 }
@@ -308,13 +308,46 @@ NameNode name() : { Token s; }
     s = < IDENTIFIER> { return new NameNode(s.beginLine, s.image); }
 }
 
+
+Node fun() :
+{
+    Token t;
+    List<String> ps;
+    Node body;
+}
+{
+    t = <FUN> ps = paramList() "{" body = block() "}"
+    { return new FunNode(t.beginLine, ps, body); }
+}
+
+Node array() :
+{
+    Token t;
+    Node n;
+    List<Node> elements = new ArrayList<Node>();
+}
+{
+    t = "[" [
+        n = expr()
+        { elements.add(n); }
+        ( "," n = expr() { elements.add(n); } )*
+    ] "]"
+    { return new ArrayNode(t.beginLine, elements); }
+}
+
 Node postfix(Node n) :
 {
     List<Node> as;
+    Node index;
 }
 {
-    as = argList()
-    { return new CallNode(n.line(), n, as); }
+    (
+        as = argList()
+        { return new CallNode(n.line(), n, as); }
+    ) | (
+        index = arrayRef()
+        { return new CallArrayElementNode(n.line(), n, index); }
+    )
 }
 
 List<Node> argList() :
@@ -331,13 +364,11 @@ List<Node> argList() :
     { return as; }
 }
 
-Node fun() :
+Node arrayRef() :
 {
-    Token t;
-    List<String> ps;
-    Node body;
+    Node n;
 }
 {
-    t = <FUN> ps = paramList() "{" body = block() "}"
-    { return new FunNode(t.beginLine, ps, body); }
+    "[" n = expr() "]"
+    { return n; }
 }
