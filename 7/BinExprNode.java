@@ -47,6 +47,17 @@ public class BinExprNode extends Node {
             }
         }
 
+        if (lval instanceof MyArray && rval instanceof MyArray) {
+            switch (op) {
+                case "+":
+                    return MyArray.plus((MyArray)lval, (MyArray)rval);
+                case "-":
+                    return MyArray.minus((MyArray)lval, (MyArray)rval);
+                case "*":
+                    return MyArray.and((MyArray)lval, (MyArray)rval);
+            }
+        }
+
         String lstr = lval.toString();
         String rstr = rval.toString();
         if(op.equals("+"))
