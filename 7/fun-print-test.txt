@@ -1,0 +1,6 @@
+def print(n, m)
+    env
+    puts n;
+end
+
+print(10, 20);

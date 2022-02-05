@@ -1,0 +1,14 @@
+def createCounter()
+    n = 0;
+    fun () { n = n+1; };
+end
+
+c1 = createCounter();
+c2 = createCounter();
+
+puts "c1() = " + c1();
+puts "c1() = " + c1();
+puts "c1() = " + c1();
+puts "c2() = " + c2();
+puts "c2() = " + c2();
+puts "c2() = " + c2();
