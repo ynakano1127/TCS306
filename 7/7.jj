@@ -64,6 +64,7 @@ TOKEN : {
   < IF: "if">
   | < THEN: "then">
   | < ELSE: "else">
+  | <CLASS: "class">
   | < WHILE: "while">
   | < FOR: "for">
   | < DO : "do">
@@ -135,6 +136,47 @@ Node forStmt() :
 }
 
 Node defStmt() :
+{
+    Node n;
+}
+{
+    ( n = defFunStmt()  | n = defClassStmt() )
+    { return n; }
+}
+
+Node defClassStmt() :
+{
+    Token t, t2;
+    Node n;
+    List<Node> ns;
+}
+{
+    t = <CLASS> t2 = <IDENTIFIER> ns = members() <END>
+    { return new DefClassNode(t.beginLine, t2.image, ns); }
+}
+
+List<Node> members() :
+{
+    Node n;
+    ArrayList<Node> ns = new ArrayList<Node>();
+}
+{
+    (
+        n = member() { ns.add(n); }
+    )*
+    { return ns; }
+}
+
+Node member() :
+{
+    Node n;
+}
+{
+    (n = defFunStmt() | n = simpleStmt() )
+    { return n; }
+}
+
+Node defFunStmt() :
 {
     Token t;
     List<String> ps;
@@ -352,6 +394,7 @@ Node postfix(Node n) :
 {
     List<Node> as;
     Node index;
+    Token t;
 }
 {
     (
@@ -360,6 +403,9 @@ Node postfix(Node n) :
     ) | (
         index = arrayRef()
         { return new CallArrayElementNode(n.line(), n, index); }
+    ) | (
+        "." t = <IDENTIFIER>
+        { return new DotNode(t.beginLine, n, t.image); }
     )
 }
 

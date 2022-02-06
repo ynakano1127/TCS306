@@ -1,6 +1,10 @@
 public class LocalEnv extends Env {
     private Env outer = null;
 
+    public Env getOuter() {
+        return outer;
+    }
+
     public void setOuter(Env outer){
         this.outer = outer;
     }

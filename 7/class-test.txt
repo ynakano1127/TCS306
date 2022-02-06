@@ -1,0 +1,39 @@
+class Complex
+    re = 0;
+    im  = 0;
+
+    def initialize(r, i)
+        re = r;
+        im = i;
+    end
+
+    def add(c)
+        Complex.new(re + c.get_re(), im + c.get_im());
+    end
+
+    def add2()
+        Complex.new(re, im);
+    end
+    
+    def to_s()
+        re + " + " + im + "i";
+    end
+
+    def show()
+        env
+    end
+
+    def get_re()
+        re;
+    end
+
+    def get_im()
+        im;
+    end
+end
+
+c1 = Complex.new(10, 20);
+#c1.show();
+c2 = Complex.new(30, 40);
+c3 = c1.add(c2);
+puts c3.to_s();
