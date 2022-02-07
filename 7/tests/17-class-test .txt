@@ -43,10 +43,10 @@ class Human extends Animal
 end
 
 a1 = Animal.new("lion", 10);
-puts a1.to_s();
+puts a1;
 
 h1 = Human.new("sato", 30, "teacher");
-puts h1.to_s();
+puts h1;
 
 h1 = Human.new("suzuki", 30, "neet");
-puts h1.to_s();
+puts h1;

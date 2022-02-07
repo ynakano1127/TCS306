@@ -36,4 +36,4 @@ c1 = Complex.new(10, 20);
 #c1.show();
 c2 = Complex.new(30, 40);
 c3 = c1.add(c2);
-puts c3.to_s();
+puts c3;
