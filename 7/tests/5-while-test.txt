@@ -4,4 +4,4 @@ while i <= 10 do
 sum = sum + i;
 i = i + 1;
 end
-sum;
+puts sum;

@@ -1,0 +1,5 @@
+a = "hello";
+b = "kin iro";
+c = "mozaic";
+
+puts a + " " + b + " " + c;
