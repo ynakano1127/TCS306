@@ -1,24 +1,19 @@
 class Animal
     name = "";
     age = 0;
-
     def initialize(n, a)
         name = n;
         age = a;
-    end
-    
+    end    
     def to_s()
         name + " (age = " + age + ")";
     end
-
     def show()
         env
     end
-
     def get_name()
         name;
     end
-
     def get_age()
         age;
     end
@@ -26,17 +21,14 @@ end
 
 class Human extends Animal
     work = "";
-
     def initialize(n, a, w)
         name = n;
         age = a;
         work = w;
     end
-
     def get_work()
         work;
     end
-
     def to_s()
         name + " (age = " + age + "), (work = " + work + ")";
     end
@@ -46,7 +38,7 @@ a1 = Animal.new("lion", 10);
 puts a1;
 
 h1 = Human.new("sato", 30, "teacher");
-puts h1;
+puts h1.get_work();
 
-h1 = Human.new("suzuki", 30, "neet");
-puts h1;
+h2 = Human.new("suzuki", 30, "neet");
+puts h2;
