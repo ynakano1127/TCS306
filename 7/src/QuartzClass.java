@@ -9,8 +9,8 @@ public class QuartzClass {
 
     public QuartzObj create(Env env) throws ParseException {
         LocalEnv e = new LocalEnv();
-        for (int i = 0; i < members.size(); i++) {
-            members.get(i).eval(e);
+        for (Node member : members) {
+            member.eval(e);
         }
         e.setOuter(env);
         return new QuartzObj(e);

@@ -74,6 +74,7 @@ TOKEN : {
   | < FUN : "fun">
   | <PUTS : "puts">
   | <ENV : "env">
+  | <EXTENDS: "extends">
   |  < INTEGER: (["0"-"9"])+ >
   | < STRING : "\"" (~["\""])* "\"" >
   | <IDENTIFIER: ["a"-"z", "A"-"Z", "_"](["a"-"z", "A"-"Z", "_", "0"-"9"])*>
@@ -148,11 +149,12 @@ Node defClassStmt() :
 {
     Token t, t2;
     Node n;
+    Node inheritanceSourceNode = null;
     List<Node> ns;
 }
 {
-    t = <CLASS> t2 = <IDENTIFIER> ns = members() <END>
-    { return new DefClassNode(t.beginLine, t2.image, ns); }
+    t = <CLASS> t2 = <IDENTIFIER> [<EXTENDS> inheritanceSourceNode = name() ] ns = members() <END>
+    { return new DefClassNode(t.beginLine, t2.image, ns, inheritanceSourceNode); }
 }
 
 List<Node> members() :
